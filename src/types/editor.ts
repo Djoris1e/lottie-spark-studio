@@ -37,9 +37,8 @@ export interface BaseLayer {
   rotation: number;
   opacity: number;
   zIndex: number;
-  // Beat sync
   beatSyncMode?: BeatSyncMode;
-  beatSyncIntensity?: number; // 0-1
+  beatSyncIntensity?: number;
 }
 
 export interface LottieLayer extends BaseLayer {
@@ -65,9 +64,15 @@ export interface TextLayer extends BaseLayer {
   animation: TextAnimation;
 }
 
+export interface GifLayer extends BaseLayer {
+  type: 'gif';
+  gifUrl: string;
+  gifTitle: string;
+}
+
 export type TextAnimation = 'none' | 'fade-in' | 'typewriter' | 'bounce' | 'slide-up' | 'slide-down';
 
-export type Layer = LottieLayer | TextLayer;
+export type Layer = LottieLayer | TextLayer | GifLayer;
 
 export type BeatSyncMode = 'none' | 'pulse' | 'flash' | 'bounce' | 'rotate' | 'reveal';
 
@@ -90,8 +95,8 @@ export interface AudioState {
   file: File | null;
   url: string | null;
   duration: number;
-  waveformData: number[]; // normalized 0-1 amplitude values
-  beats: number[]; // timestamps in seconds
+  waveformData: number[];
+  beats: number[];
   isAnalyzing: boolean;
 }
 
@@ -107,7 +112,6 @@ export interface EditorState {
   isPlaying: boolean;
   zoom: number;
   audio: AudioState;
-  // Snap guides
   snapGuides: { x: number | null; y: number | null };
 }
 
@@ -154,6 +158,17 @@ export const ANIMATION_CATEGORIES: { value: AnimationCategory; label: string }[]
   { value: 'text-animations', label: 'Text Animations' },
 ];
 
+export interface GiphyGif {
+  id: string;
+  title: string;
+  images: {
+    fixed_height: { url: string; width: string; height: string };
+    fixed_height_still: { url: string };
+    original: { url: string; width: string; height: string };
+    downsized_medium: { url: string };
+  };
+}
+
 export interface Template {
   id: string;
   name: string;
@@ -162,6 +177,6 @@ export interface Template {
   aspectRatio: AspectRatioPreset;
   backgroundColor: string;
   backgroundGradient?: string;
-  layers: Array<Omit<TextLayer, 'id'> | Omit<LottieLayer, 'id'>>;
+  layers: Array<Omit<TextLayer, 'id'> | Omit<LottieLayer, 'id'> | Omit<GifLayer, 'id'>>;
   duration: number;
 }
