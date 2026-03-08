@@ -1,7 +1,9 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
 import { useEditor } from '@/context/EditorContext';
-import { Layer, LottieLayer, TextLayer, CANVAS_WIDTH, CANVAS_HEIGHT } from '@/types/editor';
+import { Layer, LottieLayer, TextLayer } from '@/types/editor';
+import { calculateSnap } from '@/lib/snapGuides';
+import { getBeatIntensity } from '@/lib/audioAnalyzer';
 
 export function EditorCanvas() {
   const { state, dispatch, selectedLayer } = useEditor();
@@ -10,6 +12,7 @@ export function EditorCanvas() {
   const [resizing, setResizing] = useState<{ layerId: string; startX: number; startY: number; origW: number; origH: number } | null>(null);
 
   const scale = state.zoom;
+  const { width: CW, height: CH } = state.canvasSize;
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvas === 'true') {
@@ -47,12 +50,18 @@ export function EditorCanvas() {
       if (dragging) {
         const dx = (e.clientX - dragging.startX) / scale;
         const dy = (e.clientY - dragging.startY) / scale;
+        const rawX = dragging.origX + dx;
+        const rawY = dragging.origY + dy;
+
+        const layer = state.layers.find(l => l.id === dragging.layerId);
+        if (!layer) return;
+
+        // Snap guides
+        const snap = calculateSnap(rawX, rawY, layer.size.width, layer.size.height, state.canvasSize, state.layers, dragging.layerId);
+        dispatch({ type: 'SET_SNAP_GUIDES', payload: { x: snap.guideX, y: snap.guideY } });
         dispatch({
           type: 'UPDATE_LAYER',
-          payload: {
-            id: dragging.layerId,
-            updates: { position: { x: dragging.origX + dx, y: dragging.origY + dy } },
-          },
+          payload: { id: dragging.layerId, updates: { position: { x: snap.x, y: snap.y } } },
         });
       }
       if (resizing) {
@@ -75,6 +84,7 @@ export function EditorCanvas() {
     const handleMouseUp = () => {
       setDragging(null);
       setResizing(null);
+      dispatch({ type: 'SET_SNAP_GUIDES', payload: { x: null, y: null } });
     };
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -82,9 +92,14 @@ export function EditorCanvas() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragging, resizing, scale, dispatch]);
+  }, [dragging, resizing, scale, dispatch, state.layers, state.canvasSize]);
 
   const sortedLayers = [...state.layers].sort((a, b) => a.zIndex - b.zIndex);
+
+  // Beat intensity for current time
+  const beatIntensity = state.audio.beats.length > 0
+    ? getBeatIntensity(state.currentTime, state.audio.beats)
+    : 0;
 
   return (
     <div
@@ -97,26 +112,63 @@ export function EditorCanvas() {
         className="relative shadow-2xl"
         data-canvas="true"
         style={{
-          width: CANVAS_WIDTH * scale,
-          height: CANVAS_HEIGHT * scale,
+          width: CW * scale,
+          height: CH * scale,
           background: state.backgroundGradient || state.backgroundColor,
           borderRadius: 8,
           overflow: 'hidden',
         }}
         onClick={handleCanvasClick}
       >
-        {sortedLayers.map(layer => (
-          layer.visible && (
+        {/* Snap guides */}
+        {state.snapGuides.x !== null && (
+          <div
+            className="absolute top-0 bottom-0 w-px z-50 pointer-events-none"
+            style={{ left: state.snapGuides.x * scale, background: 'hsl(var(--accent))' }}
+          />
+        )}
+        {state.snapGuides.y !== null && (
+          <div
+            className="absolute left-0 right-0 h-px z-50 pointer-events-none"
+            style={{ top: state.snapGuides.y * scale, background: 'hsl(var(--accent))' }}
+          />
+        )}
+
+        {sortedLayers.map(layer => {
+          if (!layer.visible) return null;
+
+          // Calculate beat sync transforms
+          let beatTransform = '';
+          let beatOpacity = layer.opacity;
+          if (beatIntensity > 0 && layer.beatSyncMode && layer.beatSyncMode !== 'none') {
+            const intensity = beatIntensity * (layer.beatSyncIntensity || 0.5);
+            switch (layer.beatSyncMode) {
+              case 'pulse':
+                beatTransform = `scale(${1 + intensity * 0.15})`;
+                break;
+              case 'flash':
+                beatOpacity = Math.min(1, layer.opacity + intensity * 0.5);
+                break;
+              case 'bounce':
+                beatTransform = `translateY(${-intensity * 20}px)`;
+                break;
+              case 'rotate':
+                beatTransform = `rotate(${intensity * 15}deg)`;
+                break;
+            }
+          }
+
+          return (
             <div
               key={layer.id}
-              className={`absolute cursor-move ${state.selectedLayerId === layer.id ? 'ring-2 ring-primary ring-offset-0' : ''}`}
+              className={`absolute cursor-move transition-none ${state.selectedLayerId === layer.id ? 'ring-2 ring-primary ring-offset-0' : ''}`}
               style={{
                 left: layer.position.x * scale,
                 top: layer.position.y * scale,
                 width: layer.size.width * scale,
                 height: layer.size.height * scale,
-                opacity: layer.opacity,
-                transform: `rotate(${layer.rotation}deg)`,
+                opacity: beatOpacity,
+                transform: `rotate(${layer.rotation}deg) ${beatTransform}`,
                 zIndex: layer.zIndex,
               }}
               onMouseDown={(e) => handleLayerMouseDown(e, layer)}
@@ -131,8 +183,8 @@ export function EditorCanvas() {
                 />
               )}
             </div>
-          )
-        ))}
+          );
+        })}
       </div>
     </div>
   );

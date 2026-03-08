@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Trash2, Copy, Eye, EyeOff, Lock, Unlock, ChevronUp, ChevronDown, Type } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
+import { BeatSyncPanel } from './BeatSyncPanel';
 
 export function PropertiesPanel() {
   const { state, dispatch, selectedLayer, addTextLayer } = useEditor();
@@ -56,13 +57,11 @@ export function PropertiesPanel() {
 
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-4">
-          {/* Name */}
           <div>
             <Label className="text-xs">Name</Label>
             <Input className="h-8 text-xs bg-secondary" value={selectedLayer.name} onChange={e => update({ name: e.target.value })} />
           </div>
 
-          {/* Position */}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">X</Label>
@@ -74,7 +73,6 @@ export function PropertiesPanel() {
             </div>
           </div>
 
-          {/* Size */}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Width</Label>
@@ -86,19 +84,16 @@ export function PropertiesPanel() {
             </div>
           </div>
 
-          {/* Opacity */}
           <div>
             <Label className="text-xs">Opacity: {Math.round(selectedLayer.opacity * 100)}%</Label>
             <Slider min={0} max={1} step={0.01} value={[selectedLayer.opacity]} onValueChange={([v]) => update({ opacity: v })} />
           </div>
 
-          {/* Rotation */}
           <div>
             <Label className="text-xs">Rotation: {selectedLayer.rotation}°</Label>
             <Slider min={0} max={360} step={1} value={[selectedLayer.rotation]} onValueChange={([v]) => update({ rotation: v })} />
           </div>
 
-          {/* Layer order */}
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" className="flex-1 text-xs" onClick={() => dispatch({ type: 'MOVE_LAYER_UP', payload: selectedLayer.id })}>
               <ChevronUp className="h-3 w-3 mr-1" /> Forward
@@ -108,11 +103,10 @@ export function PropertiesPanel() {
             </Button>
           </div>
 
-          {/* Text-specific properties */}
           {selectedLayer.type === 'text' && <TextProperties layer={selectedLayer} update={update} />}
-
-          {/* Lottie-specific properties */}
           {selectedLayer.type === 'lottie' && <LottieProperties layer={selectedLayer} update={update} />}
+          
+          <BeatSyncPanel />
         </div>
       </ScrollArea>
     </div>

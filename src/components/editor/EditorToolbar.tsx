@@ -2,10 +2,11 @@ import { useEditor } from '@/context/EditorContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { ZoomIn, ZoomOut, Type, Download, Palette } from 'lucide-react';
+import { ZoomIn, ZoomOut, Type, Palette, Undo2, Redo2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState } from 'react';
+import { AudioUploader } from './AudioUploader';
+import { AspectRatioSelector } from './AspectRatioSelector';
+import { TemplateGallery } from './TemplateGallery';
 
 const GRADIENT_PRESETS = [
   'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -19,19 +20,33 @@ const GRADIENT_PRESETS = [
 ];
 
 export function EditorToolbar() {
-  const { state, dispatch, addTextLayer } = useEditor();
+  const { state, dispatch, addTextLayer, undo, redo, canUndo, canRedo } = useEditor();
 
   return (
     <div className="h-12 border-b border-border flex items-center justify-between px-4" style={{ background: 'hsl(var(--editor-toolbar))' }}>
       <div className="flex items-center gap-2">
-        <h1 className="text-sm font-bold text-foreground tracking-tight mr-4">
+        <h1 className="text-sm font-bold text-foreground tracking-tight mr-3">
           <span className="text-primary">Lottie</span> Video Maker
         </h1>
+
+        {/* Undo / Redo */}
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo} disabled={!canUndo}>
+          <Undo2 className="h-3.5 w-3.5" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo} disabled={!canRedo}>
+          <Redo2 className="h-3.5 w-3.5" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
 
         <Button variant="secondary" size="sm" className="text-xs" onClick={() => addTextLayer()}>
           <Type className="h-3.5 w-3.5 mr-1" />
           Add Text
         </Button>
+
+        <AudioUploader />
+        <AspectRatioSelector />
+        <TemplateGallery />
 
         <Popover>
           <PopoverTrigger asChild>

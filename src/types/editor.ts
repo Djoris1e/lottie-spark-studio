@@ -11,7 +11,7 @@ export interface Size {
 export interface LottieAnimationData {
   id: string;
   name: string;
-  url: string; // URL to the JSON file
+  url: string;
   thumbnail?: string;
   category: AnimationCategory;
   source: 'builtin' | 'lottiefiles' | 'upload';
@@ -37,11 +37,14 @@ export interface BaseLayer {
   rotation: number;
   opacity: number;
   zIndex: number;
+  // Beat sync
+  beatSyncMode?: BeatSyncMode;
+  beatSyncIntensity?: number; // 0-1
 }
 
 export interface LottieLayer extends BaseLayer {
   type: 'lottie';
-  animationData: any; // parsed JSON
+  animationData: any;
   animationUrl: string;
   loop: boolean;
   speed: number;
@@ -66,16 +69,46 @@ export type TextAnimation = 'none' | 'fade-in' | 'typewriter' | 'bounce' | 'slid
 
 export type Layer = LottieLayer | TextLayer;
 
+export type BeatSyncMode = 'none' | 'pulse' | 'flash' | 'bounce' | 'rotate' | 'reveal';
+
+export type AspectRatioPreset = '9:16' | '1:1' | '16:9';
+
+export interface AspectRatioConfig {
+  label: string;
+  width: number;
+  height: number;
+  description: string;
+}
+
+export const ASPECT_RATIOS: Record<AspectRatioPreset, AspectRatioConfig> = {
+  '9:16': { label: '9:16', width: 1080, height: 1920, description: 'Reels / TikTok' },
+  '1:1': { label: '1:1', width: 1080, height: 1080, description: 'Square Post' },
+  '16:9': { label: '16:9', width: 1920, height: 1080, description: 'YouTube / Landscape' },
+};
+
+export interface AudioState {
+  file: File | null;
+  url: string | null;
+  duration: number;
+  waveformData: number[]; // normalized 0-1 amplitude values
+  beats: number[]; // timestamps in seconds
+  isAnalyzing: boolean;
+}
+
 export interface EditorState {
   layers: Layer[];
   selectedLayerId: string | null;
   canvasSize: Size;
+  aspectRatio: AspectRatioPreset;
   backgroundColor: string;
   backgroundGradient?: string;
-  duration: number; // seconds
-  currentTime: number; // seconds
+  duration: number;
+  currentTime: number;
   isPlaying: boolean;
   zoom: number;
+  audio: AudioState;
+  // Snap guides
+  snapGuides: { x: number | null; y: number | null };
 }
 
 export interface ExportSettings {
@@ -120,3 +153,15 @@ export const ANIMATION_CATEGORIES: { value: AnimationCategory; label: string }[]
   { value: 'reactions', label: 'Reactions' },
   { value: 'text-animations', label: 'Text Animations' },
 ];
+
+export interface Template {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  aspectRatio: AspectRatioPreset;
+  backgroundColor: string;
+  backgroundGradient?: string;
+  layers: Array<Omit<TextLayer, 'id'> | Omit<LottieLayer, 'id'>>;
+  duration: number;
+}
