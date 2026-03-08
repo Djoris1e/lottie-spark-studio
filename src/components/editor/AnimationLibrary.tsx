@@ -27,14 +27,18 @@ export function AnimationLibrary() {
     a.name.toLowerCase().includes(search.toLowerCase())
   )];
 
-  const handleAddAnimation = async (anim: LottieAnimationData) => {
+  const handleAddAnimation = async (anim: LottieAnimationData & { animationData?: object; rawData?: object }) => {
     try {
-      let data = (anim as any).rawData;
-      if (!data) {
+      let data = anim.animationData || anim.rawData;
+      if (!data && anim.url) {
         const resp = await fetch(anim.url);
         data = await resp.json();
       }
-      addLottieLayer(anim.name, data, anim.url);
+      if (!data) {
+        console.error('No animation data available');
+        return;
+      }
+      addLottieLayer(anim.name, data, anim.url || '');
     } catch (e) {
       console.error('Failed to load animation:', e);
     }
