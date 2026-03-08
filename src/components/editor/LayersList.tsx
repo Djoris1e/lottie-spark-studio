@@ -1,11 +1,20 @@
 import { useEditor } from '@/context/EditorContext';
 import { Button } from '@/components/ui/button';
-import { Layers, Eye, EyeOff, Lock, Unlock, Trash2, GripVertical } from 'lucide-react';
+import { Layers, Eye, EyeOff, Trash2, GripVertical, Image } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function LayersList() {
   const { state, dispatch } = useEditor();
   const sortedLayers = [...state.layers].sort((a, b) => b.zIndex - a.zIndex);
+
+  const getLayerColor = (type: string) => {
+    switch (type) {
+      case 'lottie': return 'bg-accent';
+      case 'text': return 'bg-primary';
+      case 'gif': return 'bg-yellow-500';
+      default: return 'bg-muted';
+    }
+  };
 
   return (
     <div className="border-t border-border">
@@ -23,7 +32,8 @@ export function LayersList() {
             onClick={() => dispatch({ type: 'SELECT_LAYER', payload: layer.id })}
           >
             <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-            <span className={`h-2 w-2 rounded-full ${layer.type === 'lottie' ? 'bg-accent' : 'bg-primary'}`} />
+            <span className={`h-2 w-2 rounded-full ${getLayerColor(layer.type)}`} />
+            {layer.type === 'gif' && <Image className="h-3 w-3 text-muted-foreground" />}
             <span className="flex-1 truncate text-foreground">{layer.name}</span>
             <Button variant="ghost" size="icon" className="h-5 w-5" onClick={e => { e.stopPropagation(); dispatch({ type: 'TOGGLE_LAYER_VISIBILITY', payload: layer.id }); }}>
               {layer.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
