@@ -10,13 +10,17 @@ import { Trash2, Copy, Eye, EyeOff, Lock, Unlock, ChevronUp, ChevronDown, Type }
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { BeatSyncPanel } from './BeatSyncPanel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function PropertiesPanel() {
   const { state, dispatch, selectedLayer, addTextLayer } = useEditor();
+  const isMobile = useIsMobile();
+
+  const panelWidth = isMobile ? 'w-full' : 'w-64';
 
   if (!selectedLayer) {
     return (
-      <div className="w-64 bg-card border-l border-border flex flex-col">
+      <div className={`${panelWidth} bg-card ${isMobile ? '' : 'border-l border-border'} flex flex-col`}>
         <div className="p-3 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Properties</h2>
         </div>
@@ -36,7 +40,7 @@ export function PropertiesPanel() {
   };
 
   return (
-    <div className="w-64 bg-card border-l border-border flex flex-col">
+    <div className={`${panelWidth} bg-card ${isMobile ? '' : 'border-l border-border'} flex flex-col`}>
       <div className="p-3 border-b border-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Properties</h2>
         <div className="flex gap-1">
