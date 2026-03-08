@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import lottie, { AnimationItem } from 'lottie-web';
 import { useEditor } from '@/context/EditorContext';
-import { Layer, LottieLayer, TextLayer } from '@/types/editor';
+import { Layer, LottieLayer, TextLayer, GifLayer } from '@/types/editor';
 import { calculateSnap } from '@/lib/snapGuides';
 import { getBeatIntensity } from '@/lib/audioAnalyzer';
 
@@ -56,7 +56,6 @@ export function EditorCanvas() {
         const layer = state.layers.find(l => l.id === dragging.layerId);
         if (!layer) return;
 
-        // Snap guides
         const snap = calculateSnap(rawX, rawY, layer.size.width, layer.size.height, state.canvasSize, state.layers, dragging.layerId);
         dispatch({ type: 'SET_SNAP_GUIDES', payload: { x: snap.guideX, y: snap.guideY } });
         dispatch({
@@ -96,7 +95,6 @@ export function EditorCanvas() {
 
   const sortedLayers = [...state.layers].sort((a, b) => a.zIndex - b.zIndex);
 
-  // Beat intensity for current time
   const beatIntensity = state.audio.beats.length > 0
     ? getBeatIntensity(state.currentTime, state.audio.beats)
     : 0;
@@ -120,7 +118,6 @@ export function EditorCanvas() {
         }}
         onClick={handleCanvasClick}
       >
-        {/* Snap guides */}
         {state.snapGuides.x !== null && (
           <div
             className="absolute top-0 bottom-0 w-px z-50 pointer-events-none"
@@ -137,7 +134,6 @@ export function EditorCanvas() {
         {sortedLayers.map(layer => {
           if (!layer.visible) return null;
 
-          // Calculate beat sync transforms
           let beatTransform = '';
           let beatOpacity = layer.opacity;
           if (beatIntensity > 0 && layer.beatSyncMode && layer.beatSyncMode !== 'none') {
@@ -173,8 +169,9 @@ export function EditorCanvas() {
               }}
               onMouseDown={(e) => handleLayerMouseDown(e, layer)}
             >
-              {layer.type === 'lottie' && <LottieRenderer layer={layer} scale={scale} />}
+              {layer.type === 'lottie' && <LottieRenderer layer={layer} />}
               {layer.type === 'text' && <TextRenderer layer={layer} scale={scale} />}
+              {layer.type === 'gif' && <GifRenderer layer={layer} />}
               
               {state.selectedLayerId === layer.id && !layer.locked && (
                 <div
@@ -190,7 +187,7 @@ export function EditorCanvas() {
   );
 }
 
-function LottieRenderer({ layer, scale }: { layer: LottieLayer; scale: number }) {
+function LottieRenderer({ layer }: { layer: LottieLayer }) {
   const ref = useRef<HTMLDivElement>(null);
   const animRef = useRef<AnimationItem | null>(null);
 
@@ -229,5 +226,16 @@ function TextRenderer({ layer, scale }: { layer: TextLayer; scale: number }) {
     >
       {layer.text}
     </div>
+  );
+}
+
+function GifRenderer({ layer }: { layer: GifLayer }) {
+  return (
+    <img
+      src={layer.gifUrl}
+      alt={layer.gifTitle}
+      className="w-full h-full object-contain pointer-events-none"
+      draggable={false}
+    />
   );
 }

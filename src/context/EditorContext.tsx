@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
-import { EditorState, Layer, LottieLayer, TextLayer, AudioState, AspectRatioPreset, ASPECT_RATIOS, BeatSyncMode } from '@/types/editor';
+import { EditorState, Layer, LottieLayer, TextLayer, GifLayer, AudioState, AspectRatioPreset, ASPECT_RATIOS, BeatSyncMode } from '@/types/editor';
 
 type EditorAction =
   | { type: 'ADD_LAYER'; payload: Layer }
@@ -47,7 +47,6 @@ const initialState: EditorState = {
   snapGuides: { x: null, y: null },
 };
 
-// History for undo/redo
 const MAX_HISTORY = 50;
 
 function editorReducer(state: EditorState, action: EditorAction): EditorState {
@@ -142,7 +141,6 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
   }
 }
 
-// Actions that should be tracked in undo history
 const UNDOABLE_ACTIONS = new Set([
   'ADD_LAYER', 'REMOVE_LAYER', 'UPDATE_LAYER', 'REORDER_LAYERS',
   'SET_BACKGROUND', 'SET_BACKGROUND_GRADIENT', 'DUPLICATE_LAYER',
@@ -155,6 +153,7 @@ interface EditorContextType {
   dispatch: React.Dispatch<EditorAction>;
   addLottieLayer: (name: string, animationData: any, animationUrl: string) => void;
   addTextLayer: (text?: string) => void;
+  addGifLayer: (title: string, gifUrl: string) => void;
   selectedLayer: Layer | null;
   undo: () => void;
   redo: () => void;
@@ -172,23 +171,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 
   const dispatch = useCallback((action: EditorAction) => {
     rawDispatch(action);
-    
-    // Only track undoable actions in history
-    if (!skipHistoryRef.current && UNDOABLE_ACTIONS.has(action.type)) {
-      // We need to compute the next state for history
-      // This is a bit redundant but keeps history clean
-      setTimeout(() => {
-        // Get current state after dispatch
-        // We use a ref-based approach instead
-      }, 0);
-    }
   }, []);
 
-  // Simplified undo/redo using snapshots
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // Track state changes for undo
   const lastTrackedRef = useRef<string>('');
   
   React.useEffect(() => {
@@ -201,7 +188,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     
     if (stateKey !== lastTrackedRef.current && !skipHistoryRef.current) {
       lastTrackedRef.current = stateKey;
-      // Trim future history
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
       historyRef.current.push({ ...state });
       if (historyRef.current.length > MAX_HISTORY) {
@@ -235,7 +221,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const canUndo = historyIndexRef.current > 0;
   const canRedo = historyIndexRef.current < historyRef.current.length - 1;
 
-  // Keyboard shortcuts for undo/redo
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
@@ -247,7 +232,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         e.preventDefault();
         redo();
       }
-      // Delete selected layer
       if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedLayerId) {
         const target = e.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
@@ -305,10 +289,30 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'ADD_LAYER', payload: layer });
   }, [state.canvasSize, dispatch]);
 
+  const addGifLayer = useCallback((title: string, gifUrl: string) => {
+    const layer: GifLayer = {
+      id: crypto.randomUUID(),
+      type: 'gif',
+      name: title || 'GIF',
+      visible: true,
+      locked: false,
+      position: { x: state.canvasSize.width / 2 - 200, y: state.canvasSize.height / 2 - 200 },
+      size: { width: 400, height: 400 },
+      rotation: 0,
+      opacity: 1,
+      zIndex: 0,
+      gifUrl,
+      gifTitle: title,
+      beatSyncMode: 'none',
+      beatSyncIntensity: 0.5,
+    };
+    dispatch({ type: 'ADD_LAYER', payload: layer });
+  }, [state.canvasSize, dispatch]);
+
   const selectedLayer = state.layers.find(l => l.id === state.selectedLayerId) || null;
 
   return (
-    <EditorContext.Provider value={{ state, dispatch, addLottieLayer, addTextLayer, selectedLayer, undo, redo, canUndo, canRedo }}>
+    <EditorContext.Provider value={{ state, dispatch, addLottieLayer, addTextLayer, addGifLayer, selectedLayer, undo, redo, canUndo, canRedo }}>
       {children}
     </EditorContext.Provider>
   );

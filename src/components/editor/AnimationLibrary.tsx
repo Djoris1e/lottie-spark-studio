@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Search, Upload, Folder } from 'lucide-react';
+import { Search, Upload, Folder, Image } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,6 +8,7 @@ import { builtinAnimations } from '@/data/builtinAnimations';
 import { LottieAnimationData, ANIMATION_CATEGORIES, AnimationCategory } from '@/types/editor';
 import { useEditor } from '@/context/EditorContext';
 import { AnimationCard } from './AnimationCard';
+import { GiphySearch } from './GiphySearch';
 
 export function AnimationLibrary() {
   const { addLottieLayer } = useEditor();
@@ -67,59 +68,67 @@ export function AnimationLibrary() {
 
   return (
     <div className="flex flex-col h-full bg-card">
-      <div className="p-3 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground mb-2">Animations</h2>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search animations..."
-            className="pl-9 h-9 text-sm bg-secondary border-border"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <Tabs defaultValue="all" className="flex-1 flex flex-col">
+      <Tabs defaultValue="lottie" className="flex-1 flex flex-col">
         <div className="px-3 pt-2">
           <TabsList className="w-full h-8 bg-secondary">
-            <TabsTrigger value="all" className="text-xs flex-1" onClick={() => setSelectedCategory('all')}>All</TabsTrigger>
-            <TabsTrigger value="browse" className="text-xs flex-1">Browse</TabsTrigger>
+            <TabsTrigger value="lottie" className="text-xs flex-1">Lottie</TabsTrigger>
+            <TabsTrigger value="giphy" className="text-xs flex-1 gap-1">
+              <Image className="h-3 w-3" />
+              GIFs
+            </TabsTrigger>
             <TabsTrigger value="uploads" className="text-xs flex-1">Uploads</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="all" className="flex-1 mt-0">
-          <ScrollArea className="h-[calc(100vh-220px)]">
+        <TabsContent value="lottie" className="flex-1 mt-0 flex flex-col">
+          <div className="p-3 pb-1">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search animations..."
+                className="pl-9 h-9 text-sm bg-secondary border-border"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1 px-3 py-1">
+            <Button
+              size="sm"
+              variant={selectedCategory === 'all' ? 'default' : 'secondary'}
+              className="text-[10px] h-6 px-2"
+              onClick={() => setSelectedCategory('all')}
+            >
+              All
+            </Button>
+            {ANIMATION_CATEGORIES.map(cat => (
+              <Button
+                key={cat.value}
+                size="sm"
+                variant={selectedCategory === cat.value ? 'default' : 'secondary'}
+                className="text-[10px] h-6 px-2"
+                onClick={() => setSelectedCategory(cat.value)}
+              >
+                {cat.label}
+              </Button>
+            ))}
+          </div>
+          <ScrollArea className="flex-1">
             <div className="grid grid-cols-2 gap-2 p-3">
               {allAnimations.map(anim => (
                 <AnimationCard key={anim.id} animation={anim} onAdd={handleAddAnimation} />
               ))}
+              {allAnimations.length === 0 && (
+                <div className="col-span-2 text-center py-8 text-muted-foreground text-xs">
+                  No animations found
+                </div>
+              )}
             </div>
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="browse" className="flex-1 mt-0">
-          <ScrollArea className="h-[calc(100vh-220px)]">
-            <div className="flex flex-wrap gap-1.5 px-3 py-2">
-              {ANIMATION_CATEGORIES.map(cat => (
-                <Button
-                  key={cat.value}
-                  size="sm"
-                  variant={selectedCategory === cat.value ? 'default' : 'secondary'}
-                  className="text-xs h-7"
-                  onClick={() => setSelectedCategory(cat.value)}
-                >
-                  {cat.label}
-                </Button>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-2 p-3">
-              {filteredBuiltin.map(anim => (
-                <AnimationCard key={anim.id} animation={anim} onAdd={handleAddAnimation} />
-              ))}
-            </div>
-          </ScrollArea>
+        <TabsContent value="giphy" className="flex-1 mt-0">
+          <GiphySearch />
         </TabsContent>
 
         <TabsContent value="uploads" className="flex-1 mt-0">
