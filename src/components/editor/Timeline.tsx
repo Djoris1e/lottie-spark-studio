@@ -3,13 +3,14 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function Timeline() {
   const { state, dispatch } = useEditor();
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isMobile = useIsMobile();
 
-  // Sync audio element
   useEffect(() => {
     if (state.audio.url) {
       if (!audioRef.current) {
@@ -30,7 +31,6 @@ export function Timeline() {
       const startTime = performance.now();
       const startOffset = state.currentTime;
 
-      // Play audio
       if (audioRef.current) {
         audioRef.current.currentTime = startOffset;
         audioRef.current.play().catch(() => {});
@@ -80,7 +80,7 @@ export function Timeline() {
     <div className="border-t border-border" style={{ background: 'hsl(var(--timeline-bg))' }}>
       {/* Waveform display */}
       {hasAudio && (
-        <div className="relative h-12 mx-16 mt-1">
+        <div className={`relative h-10 sm:h-12 ${isMobile ? 'mx-4' : 'mx-16'} mt-1`}>
           <WaveformDisplay
             waveformData={state.audio.waveformData}
             beats={state.audio.beats}
@@ -90,17 +90,17 @@ export function Timeline() {
         </div>
       )}
 
-      <div className="h-14 flex items-center gap-3 px-4">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={reset}>
-            <RotateCcw className="h-3.5 w-3.5" />
+      <div className={`${isMobile ? 'h-12 px-2 gap-2' : 'h-14 px-4 gap-3'} flex items-center`}>
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={reset}>
+            <RotateCcw className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={togglePlay}>
-            {state.isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={togglePlay}>
+            {state.isPlaying ? <Pause className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <Play className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
           </Button>
         </div>
 
-        <span className="text-xs text-muted-foreground font-mono w-10">{formatTime(state.currentTime)}</span>
+        <span className="text-[10px] sm:text-xs text-muted-foreground font-mono w-8 sm:w-10">{formatTime(state.currentTime)}</span>
 
         <div className="flex-1 relative">
           <Slider
@@ -113,7 +113,6 @@ export function Timeline() {
               dispatch({ type: 'SET_CURRENT_TIME', payload: v });
             }}
           />
-          {/* Beat markers on slider */}
           {hasBeats && (
             <div className="absolute inset-x-0 top-0 h-full pointer-events-none">
               {state.audio.beats
@@ -132,20 +131,22 @@ export function Timeline() {
           )}
         </div>
 
-        <span className="text-xs text-muted-foreground font-mono w-10">{formatTime(state.duration)}</span>
+        <span className="text-[10px] sm:text-xs text-muted-foreground font-mono w-8 sm:w-10">{formatTime(state.duration)}</span>
 
-        <div className="flex items-center gap-2 ml-2">
-          <span className="text-xs text-muted-foreground">Duration:</span>
-          <Slider
-            className="w-24"
-            min={1}
-            max={30}
-            step={1}
-            value={[state.duration]}
-            onValueChange={([v]) => dispatch({ type: 'SET_DURATION', payload: v })}
-          />
-          <span className="text-xs font-mono text-foreground w-6">{state.duration}s</span>
-        </div>
+        {!isMobile && (
+          <div className="flex items-center gap-2 ml-2">
+            <span className="text-xs text-muted-foreground">Duration:</span>
+            <Slider
+              className="w-24"
+              min={1}
+              max={30}
+              step={1}
+              value={[state.duration]}
+              onValueChange={([v]) => dispatch({ type: 'SET_DURATION', payload: v })}
+            />
+            <span className="text-xs font-mono text-foreground w-6">{state.duration}s</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -172,7 +173,6 @@ function WaveformDisplay({
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    // Draw waveform bars
     const barCount = waveformData.length;
     const barWidth = w / barCount;
     const progressRatio = currentTime / duration;
@@ -188,7 +188,6 @@ function WaveformDisplay({
       ctx.fillRect(x, h / 2 - barH / 2, Math.max(1, barWidth - 0.5), barH);
     }
 
-    // Draw beat markers
     for (const beat of beats) {
       if (beat > duration) continue;
       const x = (beat / duration) * w;
@@ -196,7 +195,6 @@ function WaveformDisplay({
       ctx.fillRect(x - 1, 0, 2, h);
     }
 
-    // Playhead
     const playX = progressRatio * w;
     ctx.fillStyle = 'hsl(0, 0%, 100%)';
     ctx.fillRect(playX - 1, 0, 2, h);

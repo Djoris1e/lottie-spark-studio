@@ -5,16 +5,16 @@ import { motion } from 'framer-motion';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 py-8">
       {/* Ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, hsl(262 83% 58% / 0.4), transparent 70%)' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-15" style={{ background: 'radial-gradient(circle, hsl(173 80% 40% / 0.4), transparent 70%)' }} />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, hsl(262 83% 58% / 0.4), transparent 70%)' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-[200px] md:w-[400px] h-[200px] md:h-[400px] rounded-full opacity-15" style={{ background: 'radial-gradient(circle, hsl(173 80% 40% / 0.4), transparent 70%)' }} />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="text-center z-10 max-w-2xl px-6"
+        className="text-center z-10 max-w-2xl w-full"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -26,16 +26,16 @@ const Index = () => {
           Powered by Lottie animations
         </motion.div>
 
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4">
           <span className="text-primary">Lottie</span> Video{' '}
           <span className="text-accent">Maker</span>
         </h1>
 
-        <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
+        <p className="text-base sm:text-lg text-muted-foreground mb-8 max-w-md mx-auto">
           Create stunning social media videos by combining Lottie animations with customizable text. Export in 9:16 portrait format.
         </p>
 
-        <div className="flex items-center justify-center gap-4 mb-12">
+        <div className="flex items-center justify-center gap-4 mb-10 sm:mb-12">
           <Link to="/editor">
             <Button size="lg" className="glow-primary text-sm">
               <Play className="h-4 w-4 mr-2" />
@@ -44,7 +44,7 @@ const Index = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-6 text-center">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
           {[
             { icon: Layers, label: 'Drag & Drop Layers', desc: 'Combine multiple animations' },
             { icon: Video, label: '9:16 Portrait', desc: 'Reels, TikTok, Shorts ready' },
