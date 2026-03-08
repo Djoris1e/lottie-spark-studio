@@ -4,8 +4,8 @@ import { Plus } from 'lucide-react';
 import { LottieAnimationData } from '@/types/editor';
 
 interface AnimationCardProps {
-  animation: LottieAnimationData;
-  onAdd: (anim: LottieAnimationData) => void;
+  animation: LottieAnimationData & { animationData?: object };
+  onAdd: (anim: LottieAnimationData & { animationData?: object }) => void;
 }
 
 export function AnimationCard({ animation, onAdd }: AnimationCardProps) {
@@ -17,19 +17,30 @@ export function AnimationCard({ animation, onAdd }: AnimationCardProps) {
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // Timeout to mark as error if never loads
     const timeout = setTimeout(() => {
       if (!loaded) setError(true);
     }, 8000);
 
     try {
-      animRef.current = lottie.loadAnimation({
+      const config: any = {
         container: containerRef.current,
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: animation.url,
-      });
+      };
+
+      // Use inline animationData if available, otherwise fall back to URL
+      if (animation.animationData) {
+        config.animationData = animation.animationData;
+      } else if (animation.url) {
+        config.path = animation.url;
+      } else {
+        setError(true);
+        clearTimeout(timeout);
+        return;
+      }
+
+      animRef.current = lottie.loadAnimation(config);
       
       animRef.current.addEventListener('DOMLoaded', () => {
         setLoaded(true);
@@ -48,7 +59,7 @@ export function AnimationCard({ animation, onAdd }: AnimationCardProps) {
       clearTimeout(timeout);
       animRef.current?.destroy();
     };
-  }, [animation.url]);
+  }, [animation.url, animation.animationData]);
 
   const handleMouseEnter = () => animRef.current?.play();
   const handleMouseLeave = () => {
