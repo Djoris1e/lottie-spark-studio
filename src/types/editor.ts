@@ -162,6 +162,6 @@ export interface Template {
   aspectRatio: AspectRatioPreset;
   backgroundColor: string;
   backgroundGradient?: string;
-  layers: Omit<Layer, 'id'>[];
+  layers: Array<Omit<TextLayer, 'id'> | Omit<LottieLayer, 'id'>>;
   duration: number;
 }
