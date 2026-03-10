@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Search, Upload, Folder, Image } from 'lucide-react';
+import { Search, Upload, Folder, Image, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +9,7 @@ import { LottieAnimationData, ANIMATION_CATEGORIES, AnimationCategory } from '@/
 import { useEditor } from '@/context/EditorContext';
 import { AnimationCard } from './AnimationCard';
 import { GiphySearch } from './GiphySearch';
+import { LottieFilesSearch } from './LottieFilesSearch';
 
 export function AnimationLibrary() {
   const { addLottieLayer } = useEditor();
