@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Search, Upload, Folder, Image } from 'lucide-react';
+import { Search, Upload, Folder, Image, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +9,7 @@ import { LottieAnimationData, ANIMATION_CATEGORIES, AnimationCategory } from '@/
 import { useEditor } from '@/context/EditorContext';
 import { AnimationCard } from './AnimationCard';
 import { GiphySearch } from './GiphySearch';
+import { LottieFilesSearch } from './LottieFilesSearch';
 
 export function AnimationLibrary() {
   const { addLottieLayer } = useEditor();
@@ -75,7 +76,11 @@ export function AnimationLibrary() {
       <Tabs defaultValue="lottie" className="flex-1 flex flex-col">
         <div className="px-3 pt-2">
           <TabsList className="w-full h-8 bg-secondary">
-            <TabsTrigger value="lottie" className="text-xs flex-1">Lottie</TabsTrigger>
+            <TabsTrigger value="lottie" className="text-xs flex-1">Built-in</TabsTrigger>
+            <TabsTrigger value="lottiefiles" className="text-xs flex-1 gap-1">
+              <Sparkles className="h-3 w-3" />
+              Browse
+            </TabsTrigger>
             <TabsTrigger value="giphy" className="text-xs flex-1 gap-1">
               <Image className="h-3 w-3" />
               GIFs
@@ -129,6 +134,10 @@ export function AnimationLibrary() {
               )}
             </div>
           </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="lottiefiles" className="flex-1 mt-0">
+          <LottieFilesSearch />
         </TabsContent>
 
         <TabsContent value="giphy" className="flex-1 mt-0">
