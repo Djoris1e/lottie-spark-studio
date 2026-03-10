@@ -76,7 +76,11 @@ export function AnimationLibrary() {
       <Tabs defaultValue="lottie" className="flex-1 flex flex-col">
         <div className="px-3 pt-2">
           <TabsList className="w-full h-8 bg-secondary">
-            <TabsTrigger value="lottie" className="text-xs flex-1">Lottie</TabsTrigger>
+            <TabsTrigger value="lottie" className="text-xs flex-1">Built-in</TabsTrigger>
+            <TabsTrigger value="lottiefiles" className="text-xs flex-1 gap-1">
+              <Sparkles className="h-3 w-3" />
+              Browse
+            </TabsTrigger>
             <TabsTrigger value="giphy" className="text-xs flex-1 gap-1">
               <Image className="h-3 w-3" />
               GIFs
