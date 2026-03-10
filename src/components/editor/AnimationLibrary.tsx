@@ -136,6 +136,10 @@ export function AnimationLibrary() {
           </ScrollArea>
         </TabsContent>
 
+        <TabsContent value="lottiefiles" className="flex-1 mt-0">
+          <LottieFilesSearch />
+        </TabsContent>
+
         <TabsContent value="giphy" className="flex-1 mt-0">
           <GiphySearch />
         </TabsContent>
